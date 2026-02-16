@@ -18,26 +18,41 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
 
   // Initialize map
   useEffect(() => {
+    // Skip on server-side rendering
+    if (typeof window === 'undefined') return;
+
     if (!mapContainer.current || map.current) return;
 
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: {
-        version: 8,
-        sources: {},
-        layers: [],
-      },
-      center: region.center,
-      zoom: region.zoom,
-      maxBounds: [[-180, -85], [180, 85]],
-    });
+    // Wait for container to have dimensions
+    const container = mapContainer.current;
+    if (!container.offsetWidth || !container.offsetHeight) {
+      console.warn('Map container has no dimensions yet');
+      return;
+    }
 
-    map.current.on('load', () => {
+    try {
+      map.current = new maplibregl.Map({
+        container: container,
+        style: {
+          version: 8,
+          sources: {},
+          layers: [],
+        },
+        center: region.center,
+        zoom: region.zoom,
+        maxBounds: [[-180, -85], [180, 85]],
+      });
+
+      map.current.on('load', () => {
+        setIsLoading(false);
+      });
+
+      // Add navigation controls
+      map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+    } catch (error) {
+      console.error('Error initializing map:', error);
       setIsLoading(false);
-    });
-
-    // Add navigation controls
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+    }
 
     return () => {
       map.current?.remove();
