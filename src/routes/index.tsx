@@ -44,14 +44,24 @@ function App() {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
-      <Map
-        region={selectedRegion}
-        seaLevel={seaLevel}
-        showHillshade={showHillshade}
-        showShelf={showShelf}
-        onReset={handleReset}
-      />
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      overflow: 'hidden',
+      display: 'flex'
+    }}>
+      <div style={{ flex: 1, position: 'relative' }}>
+        <Map
+          region={selectedRegion}
+          seaLevel={seaLevel}
+          showHillshade={showHillshade}
+          showShelf={showShelf}
+          onReset={handleReset}
+        />
+      </div>
       <ControlPanel
         regions={regions}
         selectedRegion={selectedRegion}
