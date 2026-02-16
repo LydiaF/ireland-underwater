@@ -158,19 +158,19 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
   }, [region, seaLevel, showHillshade, showShelf, isLoading]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div
-        ref={mapContainer}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          width: '100%',
-          height: '100%'
-        }}
-      />
+    <div
+      ref={mapContainer}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 0
+      }}
+    />
       {isLoading && (
         <div
           style={{

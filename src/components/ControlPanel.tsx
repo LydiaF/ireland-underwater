@@ -29,7 +29,7 @@ export default function ControlPanel({
   return (
     <div
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: '20px',
         left: '20px',
         background: 'rgba(255, 255, 255, 0.95)',
