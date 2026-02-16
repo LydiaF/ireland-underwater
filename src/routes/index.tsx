@@ -1,37 +1,45 @@
 import { createFileRoute } from '@tanstack/react-router'
-import '../App.css'
+import { useState } from 'react'
+import Map from '../components/Map'
+import ControlPanel from '../components/ControlPanel'
+import { regions } from '../data/regions'
 
 export const Route = createFileRoute('/')({ component: App })
 
 function App() {
+  const [selectedRegion, setSelectedRegion] = useState(regions[0])
+  const [seaLevel, setSeaLevel] = useState(0)
+  const [showHillshade, setShowHillshade] = useState(false)
+  const [showShelf, setShowShelf] = useState(false)
+
+  const handleReset = () => {
+    setSelectedRegion(regions[0])
+    setSeaLevel(0)
+    setShowHillshade(false)
+    setShowShelf(false)
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img
-          src="/tanstack-circle-logo.png"
-          className="App-logo"
-          alt="TanStack Logo"
-        />
-        <p>
-          Edit <code>src/routes/index.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <a
-          className="App-link"
-          href="https://tanstack.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn TanStack
-        </a>
-      </header>
+    <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
+      <Map
+        region={selectedRegion}
+        seaLevel={seaLevel}
+        showHillshade={showHillshade}
+        showShelf={showShelf}
+        onReset={handleReset}
+      />
+      <ControlPanel
+        regions={regions}
+        selectedRegion={selectedRegion}
+        seaLevel={seaLevel}
+        showHillshade={showHillshade}
+        showShelf={showShelf}
+        onRegionChange={setSelectedRegion}
+        onSeaLevelChange={setSeaLevel}
+        onHillshadeToggle={() => setShowHillshade(!showHillshade)}
+        onShelfToggle={() => setShowShelf(!showShelf)}
+        onReset={handleReset}
+      />
     </div>
   )
 }

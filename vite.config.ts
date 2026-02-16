@@ -4,7 +4,6 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import { fileURLToPath, URL } from 'url'
-import { cloudflare } from '@cloudflare/vite-plugin'
 
 const config = defineConfig({
   resolve: {
@@ -14,13 +13,16 @@ const config = defineConfig({
   },
   plugins: [
     devtools(),
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
     }),
 
-    tanstackStart(),
+    tanstackStart({
+      deployment: {
+        preset: 'vercel',
+      },
+    }),
     viteReact(),
   ],
 })

@@ -12,6 +12,7 @@
 	},
 	"dependencies": {
 		"@cloudflare/vite-plugin": "^1.13.8",
+		"@google/earthengine": "^1.7.13",
 		"@tanstack/react-devtools": "^0.7.0",
 		"@tanstack/react-router": "^1.132.0",
 		"@tanstack/react-router-devtools": "^1.132.0",
@@ -19,6 +20,8 @@
 		"@tanstack/react-start": "^1.132.0",
 		"@tanstack/router-plugin": "^1.132.0",
 		"lucide-react": "^0.561.0",
+		"maplibre-gl": "^5.18.0",
+		"node-cache": "^5.1.2",
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0",
 		"vite-tsconfig-paths": "^6.0.2"
@@ -27,6 +30,7 @@
 		"@tanstack/devtools-vite": "^0.3.11",
 		"@testing-library/dom": "^10.4.0",
 		"@testing-library/react": "^16.2.0",
+		"@types/maplibre-gl": "^1.13.2",
 		"@types/node": "^22.19.11",
 		"@types/react": "^19.2.0",
 		"@types/react-dom": "^19.2.0",
