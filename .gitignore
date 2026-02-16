@@ -18,3 +18,4 @@ todos.json
 
 # Earth Engine service account (contains sensitive credentials)
 earth-engine-service-account.json
+VERCEL_ENV_VALUE.txt
