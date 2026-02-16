@@ -35,8 +35,23 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
         container: container,
         style: {
           version: 8,
-          sources: {},
-          layers: [],
+          sources: {
+            'background-source': {
+              type: 'raster',
+              tiles: [],
+              tileSize: 256
+            }
+          },
+          layers: [
+            {
+              id: 'background',
+              type: 'background',
+              paint: {
+                'background-color': '#e0e0e0'
+              }
+            }
+          ],
+          glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
         },
         center: region.center,
         zoom: region.zoom,
