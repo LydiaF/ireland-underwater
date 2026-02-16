@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import maplibregl from 'maplibre-gl';
 import type { Region } from '../data/regions';
 
 interface MapProps {
@@ -11,21 +12,126 @@ interface MapProps {
 
 export default function Map({ region, seaLevel, showHillshade, showShelf, onReset }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const map = useRef<maplibregl.Map | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Check dimensions
+  // Initialize map
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (map.current) return;
+    if (!mapContainer.current) return;
+
     const timer = setTimeout(() => {
-      if (!mapContainer.current) return;
+      try {
+        console.log('Initializing map...');
 
-      const width = mapContainer.current.offsetWidth;
-      const height = mapContainer.current.offsetHeight;
-      setDimensions({ width, height });
-      console.log('Container dimensions:', width, height);
-    }, 100);
+        map.current = new maplibregl.Map({
+          container: mapContainer.current!,
+          style: 'https://demotiles.maplibre.org/style.json',
+          center: region.center,
+          zoom: region.zoom,
+          attributionControl: false,
+        });
 
-    return () => clearTimeout(timer);
-  }, []);
+        map.current.on('load', () => {
+          console.log('Map loaded!');
+          setIsLoading(false);
+        });
+
+        map.current.on('error', (e: any) => {
+          console.error('Map error:', e);
+          setError(e.error?.message || 'Map error');
+        });
+
+        map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+      } catch (err: any) {
+        console.error('Failed to create map:', err);
+        setError(err.message);
+        setIsLoading(false);
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, [region.center, region.zoom]);
+
+  // Update region
+  useEffect(() => {
+    if (!map.current || isLoading) return;
+
+    map.current.flyTo({
+      center: region.center,
+      zoom: region.zoom,
+      essential: true,
+    });
+  }, [region, isLoading]);
+
+  // Update layers
+  useEffect(() => {
+    if (!map.current || isLoading) return;
+
+    const currentMap = map.current;
+
+    // Remove existing layers
+    ['elevation-layer', 'hillshade-layer', 'shelf-layer'].forEach(id => {
+      if (currentMap.getLayer(id)) currentMap.removeLayer(id);
+    });
+    ['elevation', 'hillshade', 'shelf'].forEach(id => {
+      if (currentMap.getSource(id)) currentMap.removeSource(id);
+    });
+
+    const buildTileUrl = (layer: string) =>
+      `/api/tiles/${layer}/${region.id}/{z}/{x}/{y}.png?sealevel=${seaLevel}`;
+
+    // Add elevation
+    currentMap.addSource('elevation', {
+      type: 'raster',
+      tiles: [buildTileUrl('elevation')],
+      tileSize: 256,
+    });
+    currentMap.addLayer({
+      id: 'elevation-layer',
+      type: 'raster',
+      source: 'elevation',
+      paint: { 'raster-opacity': 1 },
+    });
+
+    // Add hillshade
+    if (showHillshade) {
+      currentMap.addSource('hillshade', {
+        type: 'raster',
+        tiles: [buildTileUrl('hillshade')],
+        tileSize: 256,
+      });
+      currentMap.addLayer({
+        id: 'hillshade-layer',
+        type: 'raster',
+        source: 'hillshade',
+        paint: { 'raster-opacity': 0.3 },
+      });
+    }
+
+    // Add shelf
+    if (showShelf) {
+      currentMap.addSource('shelf', {
+        type: 'raster',
+        tiles: [buildTileUrl('shelf')],
+        tileSize: 256,
+      });
+      currentMap.addLayer({
+        id: 'shelf-layer',
+        type: 'raster',
+        source: 'shelf',
+        paint: { 'raster-opacity': 0.6 },
+      });
+    }
+  }, [region, seaLevel, showHillshade, showShelf, isLoading]);
 
   return (
     <div
@@ -36,37 +142,29 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
         left: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: '#1a73e8',
+        backgroundColor: '#e0e0e0',
         zIndex: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
       }}
     >
-      <div
-        style={{
-          background: 'white',
-          padding: '40px',
-          borderRadius: '20px',
-          fontSize: '32px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
-        }}
-      >
-        🌊 Map Container Test 🌊
-        <br />
-        <div style={{ fontSize: '24px', marginTop: '20px', color: '#666' }}>
-          Container: {dimensions.width} x {dimensions.height}
+      {(isLoading || error) && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            background: error ? '#ffebee' : 'rgba(255, 255, 255, 0.9)',
+            padding: '30px',
+            borderRadius: '15px',
+            fontSize: '24px',
+            fontWeight: 'bold',
+            zIndex: 1000,
+            border: error ? '3px solid #c62828' : 'none',
+          }}
+        >
+          {error ? `❌ Error: ${error}` : '🌊 Loading map...'}
         </div>
-        <div style={{ fontSize: '18px', marginTop: '10px', color: '#999' }}>
-          Window: {typeof window !== 'undefined' ? window.innerWidth : 0} x {typeof window !== 'undefined' ? window.innerHeight : 0}
-        </div>
-        <div style={{ fontSize: '14px', marginTop: '20px', color: '#1a73e8' }}>
-          Region: {region.name}<br />
-          Sea Level: {seaLevel}m
-        </div>
-      </div>
+      )}
     </div>
   );
 }
