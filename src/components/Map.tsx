@@ -14,6 +14,7 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   // Initialize map
   useEffect(() => {
@@ -29,7 +30,16 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
       const container = mapContainer.current;
 
       // Log dimensions for debugging
-      console.log('Container dimensions:', container.offsetWidth, container.offsetHeight);
+      const width = container.offsetWidth;
+      const height = container.offsetHeight;
+      setDimensions({ width, height });
+      console.log('Container dimensions:', width, height);
+
+      if (width === 0 || height === 0) {
+        console.error('Container has zero dimensions!');
+        setIsLoading(false);
+        return;
+      }
 
       try {
         // Use OpenStreetMap style as a working baseline
@@ -173,9 +183,14 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
             borderRadius: '10px',
             fontSize: '24px',
             fontWeight: 'bold',
+            zIndex: 1000,
           }}
         >
           🌊 Loading map...
+          <br />
+          <small style={{ fontSize: '14px' }}>
+            Container: {dimensions.width}x{dimensions.height}
+          </small>
         </div>
       )}
     </div>
