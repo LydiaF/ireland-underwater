@@ -21,55 +21,46 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
     // Skip on server-side rendering
     if (typeof window === 'undefined') return;
 
-    if (!mapContainer.current || map.current) return;
+    if (map.current) return;
 
-    // Wait for container to have dimensions
-    const container = mapContainer.current;
-    if (!container.offsetWidth || !container.offsetHeight) {
-      console.warn('Map container has no dimensions yet');
-      return;
-    }
+    // Use a small delay to ensure DOM is fully ready
+    const timer = setTimeout(() => {
+      if (!mapContainer.current) return;
 
-    try {
-      map.current = new maplibregl.Map({
-        container: container,
-        style: {
-          version: 8,
-          sources: {
-            'background-source': {
-              type: 'raster',
-              tiles: [],
-              tileSize: 256
-            }
-          },
-          layers: [
-            {
-              id: 'background',
-              type: 'background',
-              paint: {
-                'background-color': '#e0e0e0'
-              }
-            }
-          ],
-          glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
-        },
-        center: region.center,
-        zoom: region.zoom,
-        maxBounds: [[-180, -85], [180, 85]],
-      });
+      const container = mapContainer.current;
 
-      map.current.on('load', () => {
+      // Log dimensions for debugging
+      console.log('Container dimensions:', container.offsetWidth, container.offsetHeight);
+
+      try {
+        // Use OpenStreetMap style as a working baseline
+        map.current = new maplibregl.Map({
+          container: container,
+          style: 'https://demotiles.maplibre.org/style.json',
+          center: region.center,
+          zoom: region.zoom,
+          maxBounds: [[-180, -85], [180, 85]],
+        });
+
+        map.current.on('load', () => {
+          console.log('Map loaded successfully');
+          setIsLoading(false);
+        });
+
+        map.current.on('error', (e) => {
+          console.error('Map error:', e);
+        });
+
+        // Add navigation controls
+        map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+      } catch (error) {
+        console.error('Error initializing map:', error);
         setIsLoading(false);
-      });
-
-      // Add navigation controls
-      map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-    } catch (error) {
-      console.error('Error initializing map:', error);
-      setIsLoading(false);
-    }
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       map.current?.remove();
       map.current = null;
     };
@@ -159,7 +150,18 @@ export default function Map({ region, seaLevel, showHillshade, showShelf, onRese
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+      <div
+        ref={mapContainer}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%'
+        }}
+      />
       {isLoading && (
         <div
           style={{
